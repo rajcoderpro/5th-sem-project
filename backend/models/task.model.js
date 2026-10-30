@@ -19,7 +19,7 @@ const taskSchema = new mongoose.Schema(
 
         createdBy: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "users",
+            ref: "User",
             required: true
         },
 
@@ -31,7 +31,7 @@ const taskSchema = new mongoose.Schema(
 
         departmentId: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "departments",
+            ref: "department",
             required: true
         },
 
@@ -114,7 +114,7 @@ const taskSchema = new mongoose.Schema(
 
         updatedBy: {
             type: mongoose.Schema.Types.ObjectId,
-            ref: "users",
+            ref: "User",
             default: null
         }
     },

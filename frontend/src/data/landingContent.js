@@ -1,4 +1,9 @@
-import { BarChart3, BrainCircuit, GitBranch } from "lucide-react";
+
+import {
+  BarChart3,
+  BrainCircuit,
+  GitBranch,
+} from "lucide-react";
 
 export const features = [
   {
@@ -46,7 +51,19 @@ export const workflowSteps = [
 ];
 
 export const demoTasks = [
-  { name: "Authentication flow", status: "In progress", dot: "bg-cyan-300" },
-  { name: "Dashboard redesign", status: "In review", dot: "bg-violet-300" },
-  { name: "API integration", status: "To do", dot: "bg-amber-300" },
+  {
+    name: "Authentication flow",
+    status: "In progress",
+    dot: "bg-cyan-300",
+  },
+  {
+    name: "Dashboard redesign",
+    status: "In review",
+    dot: "bg-violet-300",
+  },
+  {
+    name: "API integration",
+    status: "To do",
+    dot: "bg-amber-300",
+  },
 ];

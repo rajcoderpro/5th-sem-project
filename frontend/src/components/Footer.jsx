@@ -1,3 +1,4 @@
+
 import { Link } from "react-router-dom";
 
 export default function Footer() {
@@ -7,12 +8,23 @@ export default function Footer() {
         <Link to="/" className="font-display text-sm font-semibold text-slate-300">
           WorkForce<span className="text-violet-400"> AI</span>
         </Link>
+
         <p>Smarter teams. Higher impact.</p>
+
         <div className="flex gap-5">
-          <a href="#features" className="transition hover:text-white">Features</a>
-          <a href="#how-it-works" className="transition hover:text-white">How it works</a>
-          <Link to="/login" className="transition hover:text-white">Sign in</Link>
+          <a href="#features" className="transition hover:text-white">
+            Features
+          </a>
+
+          <a href="#how-it-works" className="transition hover:text-white">
+            How it works
+          </a>
+
+          <Link to="/login" className="transition hover:text-white">
+            Sign in
+          </Link>
         </div>
+
         <p>© {new Date().getFullYear()} WorkForce AI</p>
       </div>
     </footer>
