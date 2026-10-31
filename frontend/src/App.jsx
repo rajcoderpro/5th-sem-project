@@ -1,11 +1,14 @@
 
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 
 import LandingPage from "./pages/LandingPage.jsx";
 import LoginPage from "./pages/LoginPage.jsx";
 import DashboardPlaceholder from "./pages/DashboardPlaceholder.jsx";
 
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
+
+import AdminLayout from "./layouts/AdminLayout.jsx";
+import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 
 export default function App() {
   return (
@@ -14,17 +17,27 @@ export default function App() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Admin-only route */}
+      {/* Admin routes */}
       <Route
-        path="/admin/dashboard"
+        path="/admin"
         element={
           <ProtectedRoute allowedRoles={["ADMIN"]}>
-            <DashboardPlaceholder role="ADMIN" />
+            <AdminLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route
+          index
+          element={<Navigate to="dashboard" replace />}
+        />
 
-      {/* Employee-only route */}
+        <Route
+          path="dashboard"
+          element={<AdminDashboard />}
+        />
+      </Route>
+
+      {/* Employee route */}
       <Route
         path="/employee/dashboard"
         element={
