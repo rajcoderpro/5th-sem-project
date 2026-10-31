@@ -1,7 +1,12 @@
 
-import { LogOut, Menu, UserCircle2 } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 
-export default function AdminTopbar({ user, onMenuClick, onLogout }) {
+export default function AdminTopbar({
+  user,
+  onMenuClick,
+  onLogout,
+  pageTitle = "Dashboard",
+}) {
   const today = new Intl.DateTimeFormat("en-IN", {
     day: "numeric",
     month: "short",
@@ -28,9 +33,12 @@ export default function AdminTopbar({ user, onMenuClick, onLogout }) {
         </button>
 
         <div>
-          <p className="text-xs text-slate-500">ADMIN CONSOLE / OVERVIEW</p>
+          <p className="text-xs text-slate-500">
+            ADMIN CONSOLE / {pageTitle.toUpperCase()}
+          </p>
+
           <h1 className="mt-1 font-display text-sm font-semibold sm:text-base">
-            Dashboard
+            {pageTitle}
           </h1>
         </div>
       </div>
@@ -44,13 +52,14 @@ export default function AdminTopbar({ user, onMenuClick, onLogout }) {
 
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-violet-400/20 bg-violet-500/10 text-xs font-bold text-violet-200">
-            {initials || <UserCircle2 size={20} />}
+            {initials}
           </div>
 
           <div className="hidden min-w-0 sm:block">
             <p className="max-w-32 truncate text-xs font-semibold text-slate-200">
               {user?.name || "Administrator"}
             </p>
+
             <p className="mt-0.5 text-[10px] text-slate-500">
               Administrator
             </p>

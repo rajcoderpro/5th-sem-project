@@ -9,15 +9,16 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 
 import AdminLayout from "./layouts/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
+import EmployeesPage from "./pages/admin/EmployeesPage.jsx";
 
 export default function App() {
   return (
     <Routes>
-      {/* Public routes */}
+      {/* Public pages */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Admin routes */}
+      {/* Protected admin section */}
       <Route
         path="/admin"
         element={
@@ -35,9 +36,14 @@ export default function App() {
           path="dashboard"
           element={<AdminDashboard />}
         />
+
+        <Route
+          path="employees"
+          element={<EmployeesPage />}
+        />
       </Route>
 
-      {/* Employee route */}
+      {/* Employee section */}
       <Route
         path="/employee/dashboard"
         element={
@@ -47,7 +53,6 @@ export default function App() {
         }
       />
 
-      {/* Fallback */}
       <Route path="*" element={<LandingPage />} />
     </Routes>
   );

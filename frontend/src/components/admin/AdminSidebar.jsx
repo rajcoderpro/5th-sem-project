@@ -1,6 +1,5 @@
 
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 import {
   Activity,
@@ -11,43 +10,38 @@ import {
   X,
   Zap,
   ChevronRight,
+  LockKeyhole,
 } from "lucide-react";
 
 const navigation = [
   {
     label: "Overview",
-    icon: LayoutDashboard,
     href: "/admin/dashboard",
-    type: "route",
+    icon: LayoutDashboard,
+    available: true,
   },
   {
     label: "Employees",
+    href: "/admin/employees",
     icon: Users,
-    href: "#employees",
-    type: "section",
+    available: true,
   },
   {
     label: "Departments",
+    href: null,
     icon: Building2,
-    href: "#departments",
-    type: "section",
+    available: false,
   },
   {
     label: "Tasks",
+    href: null,
     icon: ClipboardList,
-    href: "#tasks",
-    type: "section",
+    available: false,
   },
-  
 ];
 
 export default function AdminSidebar({ open, onClose }) {
-  const [active, setActive] = useState("Overview");
-
-  const handleSectionClick = (label) => {
-    setActive(label);
-    onClose?.();
-  };
+  const location = useLocation();
 
   return (
     <>
@@ -61,16 +55,16 @@ export default function AdminSidebar({ open, onClose }) {
       )}
 
       <aside
-        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/[0.07] bg-[#090b18] transition-transform duration-300 ${
+        className={`fixed inset-y-0 left-0 z-50 flex w-[260px] flex-col border-r border-white/[.07] bg-[#090b18] transition-transform duration-300 ${
           open ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
         {/* Logo */}
-        <div className="flex h-[76px] items-center justify-between border-b border-white/[0.07] px-6">
+        <div className="flex h-[76px] items-center justify-between border-b border-white/[.07] px-6">
           <Link
             to="/admin/dashboard"
+            onClick={onClose}
             className="flex items-center gap-3"
-            onClick={() => setActive("Overview")}
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-violet-400/20 bg-gradient-to-br from-violet-600/20 to-cyan-500/10">
               <Zap className="h-5 w-5 text-violet-300" />
@@ -80,6 +74,7 @@ export default function AdminSidebar({ open, onClose }) {
               <h2 className="font-display text-base font-bold tracking-tight">
                 WorkForce<span className="text-violet-400"> AI</span>
               </h2>
+
               <p className="mt-0.5 text-[9px] tracking-[.2em] text-slate-500">
                 ADMIN CONSOLE
               </p>
@@ -89,8 +84,8 @@ export default function AdminSidebar({ open, onClose }) {
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-500 hover:text-white md:hidden"
             aria-label="Close sidebar"
+            className="text-slate-500 hover:text-white md:hidden"
           >
             <X size={19} />
           </button>
@@ -102,66 +97,64 @@ export default function AdminSidebar({ open, onClose }) {
             WORKSPACE
           </p>
 
-          <div className="space-y-1.5">
+          <div className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon;
-              const isActive = active === item.label;
+              const active = location.pathname === item.href;
 
-              const className = `group flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
-                isActive
+              const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
+                active
                   ? "border border-violet-400/15 bg-violet-500/[.12] text-violet-200"
-                  : "text-slate-400 hover:bg-white/[.04] hover:text-white"
+                  : item.available
+                    ? "text-slate-400 hover:bg-white/[.04] hover:text-white"
+                    : "cursor-not-allowed text-slate-600"
               }`;
 
-              if (item.type === "route") {
-                return (
-                  <Link
-                    key={item.label}
-                    to={item.href}
-                    onClick={() => {
-                      setActive(item.label);
-                      onClose?.();
-                    }}
-                    className={className}
-                  >
-                    <Icon
-                      size={18}
-                      className={
-                        isActive
-                          ? "text-violet-300"
-                          : "text-slate-500 group-hover:text-violet-300"
-                      }
-                    />
-
-                    <span className="flex-1">{item.label}</span>
-
-                    {isActive && (
-                      <ChevronRight size={15} className="text-violet-400" />
-                    )}
-                  </Link>
-                );
-              }
-
-              return (
-                <a
+              return item.available ? (
+                <Link
                   key={item.label}
-                  href={item.href}
-                  onClick={() => handleSectionClick(item.label)}
+                  to={item.href}
+                  onClick={onClose}
                   className={className}
                 >
                   <Icon
                     size={18}
-                    className="text-slate-500 group-hover:text-violet-300"
+                    className={
+                      active ? "text-violet-300" : "text-slate-500"
+                    }
                   />
 
                   <span className="flex-1">{item.label}</span>
-                </a>
+
+                  {active && (
+                    <ChevronRight
+                      size={15}
+                      className="text-violet-400"
+                    />
+                  )}
+                </Link>
+              ) : (
+                <div
+                  key={item.label}
+                  aria-disabled="true"
+                  title="Coming soon"
+                  className={className}
+                >
+                  <Icon size={18} className="text-slate-600" />
+
+                  <span className="flex-1">{item.label}</span>
+
+                  <LockKeyhole
+                    size={12}
+                    className="text-slate-700"
+                  />
+                </div>
               );
             })}
           </div>
         </div>
 
-        {/* Bottom information */}
+        {/* Bottom panel */}
         <div className="mt-auto p-5">
           <div className="relative overflow-hidden rounded-2xl border border-violet-400/15 bg-gradient-to-br from-violet-500/[.12] to-blue-500/[.04] p-4">
             <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-violet-500/20 blur-2xl" />

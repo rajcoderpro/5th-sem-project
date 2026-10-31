@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext.jsx";
 import AdminSidebar from "../components/admin/AdminSidebar.jsx";
@@ -11,6 +11,15 @@ export default function AdminLayout() {
 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const pageTitle = location.pathname.endsWith("/employees")
+    ? "Employees"
+    : location.pathname.endsWith("/departments")
+      ? "Departments"
+      : location.pathname.endsWith("/tasks")
+        ? "Tasks"
+        : "Dashboard";
 
   const handleLogout = async () => {
     try {
@@ -24,9 +33,9 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-[#070914] text-white">
-      {/* Background effects */}
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -right-40 -top-40 h-96 w-96 rounded-full bg-violet-700/[.08] blur-[130px]" />
+
         <div className="absolute -bottom-40 left-1/3 h-96 w-96 rounded-full bg-cyan-600/[.05] blur-[130px]" />
       </div>
 
@@ -38,6 +47,7 @@ export default function AdminLayout() {
       <div className="relative min-h-screen md:pl-[260px]">
         <AdminTopbar
           user={user}
+          pageTitle={pageTitle}
           onMenuClick={() => setSidebarOpen(true)}
           onLogout={handleLogout}
         />

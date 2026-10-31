@@ -1,6 +1,6 @@
 
 import { Users } from "lucide-react";
-
+import { Link } from "react-router-dom";
 const statusStyles = {
   ACTIVE: "border-emerald-400/20 bg-emerald-400/10 text-emerald-300",
   ON_LEAVE: "border-amber-400/20 bg-amber-400/10 text-amber-300",
@@ -8,17 +8,17 @@ const statusStyles = {
   TERMINATED: "border-red-400/20 bg-red-400/10 text-red-300",
 };
 
-function getInitials(name = "") {
+function getInitials( name = "" ) {
   return name
-    .split(" ")
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join("");
+    .split( " " )
+    .filter( Boolean )
+    .slice( 0, 2 )
+    .map( ( part ) => part[0].toUpperCase() )
+    .join( "" );
 }
 
-export default function EmployeeTable({ employees = [] }) {
-  const visibleEmployees = employees.slice(0, 6);
+export default function EmployeeTable( { employees = [] } ) {
+  const visibleEmployees = employees.slice( 0, 6 );
 
   return (
     <section
@@ -42,6 +42,12 @@ export default function EmployeeTable({ employees = [] }) {
         <span className="rounded-lg border border-white/10 bg-white/[.03] px-3 py-1.5 text-xs text-slate-400">
           {employees.length} total
         </span>
+        <Link
+          to="/admin/employees"
+          className="text-xs font-medium text-violet-300 transition hover:text-white"
+        >
+          View all →
+        </Link>
       </div>
 
       <div className="overflow-x-auto">
@@ -56,7 +62,7 @@ export default function EmployeeTable({ employees = [] }) {
           </thead>
 
           <tbody>
-            {visibleEmployees.map((employee) => {
+            {visibleEmployees.map( ( employee ) => {
               const name = employee.userId?.name || "Unknown employee";
               const email = employee.userId?.email || "No email";
               const status = employee.employmentStatus || "INACTIVE";
@@ -69,7 +75,7 @@ export default function EmployeeTable({ employees = [] }) {
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-violet-400/15 bg-violet-400/10 text-xs font-semibold text-violet-200">
-                        {getInitials(name)}
+                        {getInitials( name )}
                       </div>
 
                       <div className="min-w-0">
@@ -99,16 +105,15 @@ export default function EmployeeTable({ employees = [] }) {
 
                   <td className="px-6 py-4">
                     <span
-                      className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${
-                        statusStyles[status] || statusStyles.INACTIVE
-                      }`}
+                      className={`inline-flex rounded-full border px-2.5 py-1 text-[10px] font-medium ${statusStyles[status] || statusStyles.INACTIVE
+                        }`}
                     >
-                      {status.replaceAll("_", " ")}
+                      {status.replaceAll( "_", " " )}
                     </span>
                   </td>
                 </tr>
               );
-            })}
+            } )}
 
             {visibleEmployees.length === 0 && (
               <tr>
