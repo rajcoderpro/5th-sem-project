@@ -1,4 +1,7 @@
 
+// Run from the backend directory with: node seed.js
+// Required in backend/.env: MONGOOSE_URI, SEED_ADMIN_PASSWORD,
+// and SEED_EMPLOYEE_PASSWORD.
 const mongoose = require('mongoose')
 require( "dotenv" ).config();
 
@@ -6,7 +9,7 @@ async function seedDatabase() {
     const mongoUri = process.env.MONGOOSE_URI;
 
     if (!mongoUri) {
-        throw new Error("Missing  or MONGO_URI in your .env file");
+        throw new Error("Missing MONGOOSE_URI in your .env file");
     }
 
     await mongoose.connect(mongoUri);
@@ -19,8 +22,14 @@ const departmentModel = require( "./models/department.model" );
 
 const users = [
     {
-        name: "System Admin",
+        name: "Raj",
         email: "admin@workforce.local",
+        role: "ADMIN",
+        passwordEnv: "SEED_ADMIN_PASSWORD",
+    },
+    {
+        name: "Rachit",
+        email: "rachit@workforce.local",
         role: "ADMIN",
         passwordEnv: "SEED_ADMIN_PASSWORD",
     },
@@ -204,6 +213,30 @@ const users = [
         role: "EMPLOYEE",
         passwordEnv: "SEED_EMPLOYEE_PASSWORD",
     },
+    {
+        name: "Harsh Shah",
+        email: "harsh@workforce.local",
+        role: "EMPLOYEE",
+        passwordEnv: "SEED_EMPLOYEE_PASSWORD",
+    },
+    {
+        name: "Ira Desai",
+        email: "ira@workforce.local",
+        role: "EMPLOYEE",
+        passwordEnv: "SEED_EMPLOYEE_PASSWORD",
+    },
+    {
+        name: "Sahil Arora",
+        email: "sahil@workforce.local",
+        role: "EMPLOYEE",
+        passwordEnv: "SEED_EMPLOYEE_PASSWORD",
+    },
+    {
+        name: "Maya Thomas",
+        email: "maya@workforce.local",
+        role: "EMPLOYEE",
+        passwordEnv: "SEED_EMPLOYEE_PASSWORD",
+    },
 ];
 const departments = [
     {
@@ -225,6 +258,26 @@ const departments = [
         name: "Finance",
         code: "FIN",
         description: "Financial planning and operations",
+    },
+    {
+        name: "Product",
+        code: "PROD",
+        description: "Product strategy, discovery, and delivery",
+    },
+    {
+        name: "Data & Analytics",
+        code: "DATA",
+        description: "Business intelligence, reporting, and data engineering",
+    },
+    {
+        name: "Sales",
+        code: "SALES",
+        description: "Business development and customer relationships",
+    },
+    {
+        name: "Operations",
+        code: "OPS",
+        description: "Business operations and process improvement",
     },
 ];
 
@@ -320,13 +373,17 @@ async function seedEmployees(seededUsers, departmentsByCode, adminId) {
         (user) => user.role === "EMPLOYEE"
     );
 
-    const departmentCodes = ["ENG", "HR", "MKT", "FIN"];
+    const departmentCodes = ["ENG", "HR", "MKT", "FIN", "PROD", "DATA", "SALES", "OPS"];
 
     const skillSets = {
         ENG: ["JavaScript", "React", "Node.js"],
         HR: ["Recruitment", "Communication", "HR Operations"],
         MKT: ["Content Strategy", "SEO", "Marketing Analytics"],
         FIN: ["Financial Analysis", "Excel", "Budgeting"],
+        PROD: ["Product Strategy", "User Research", "Agile"],
+        DATA: ["SQL", "Data Analysis", "Power BI"],
+        SALES: ["Negotiation", "CRM", "Communication"],
+        OPS: ["Process Improvement", "Project Management", "Excel"],
     };
 
     const designations = {
@@ -334,6 +391,10 @@ async function seedEmployees(seededUsers, departmentsByCode, adminId) {
         HR: "HR Executive",
         MKT: "Marketing Associate",
         FIN: "Financial Analyst",
+        PROD: "Product Associate",
+        DATA: "Data Analyst",
+        SALES: "Account Executive",
+        OPS: "Operations Coordinator",
     };
 
     const employeeByEmail = {};
@@ -592,6 +653,95 @@ async function seedTasks(seededUsers, employeeByEmail) {
                 { name: "Financial Analysis", minimumLevel: 2 },
             ],
         },
+        {
+            title: "Document product discovery findings",
+            email: "rahul.verma@workforce.local",
+            priority: "MEDIUM",
+            status: "IN_PROGRESS",
+            dueInDays: 4,
+            estimatedHours: 6,
+            actualHours: 2,
+            progress: 35,
+            skills: [{ name: "User Research", minimumLevel: 2 }],
+        },
+        {
+            title: "Build quarterly hiring and headcount report",
+            email: "simran@workforce.local",
+            priority: "HIGH",
+            status: "TODO",
+            dueInDays: 5,
+            estimatedHours: 7,
+            actualHours: 0,
+            progress: 0,
+            skills: [{ name: "Excel", minimumLevel: 2 }],
+        },
+        {
+            title: "Prepare customer renewal proposals",
+            email: "dev@workforce.local",
+            priority: "HIGH",
+            status: "IN_PROGRESS",
+            dueInDays: 3,
+            estimatedHours: 5,
+            actualHours: 2,
+            progress: 40,
+            skills: [{ name: "Communication", minimumLevel: 2 }],
+        },
+        {
+            title: "Review monthly sales pipeline",
+            email: "neha@workforce.local",
+            priority: "MEDIUM",
+            status: "IN_REVIEW",
+            dueInDays: 1,
+            estimatedHours: 4,
+            actualHours: 4,
+            progress: 100,
+            skills: [{ name: "CRM", minimumLevel: 2 }],
+        },
+        {
+            title: "Automate weekly operations report",
+            email: "karan@workforce.local",
+            priority: "URGENT",
+            status: "TODO",
+            dueInDays: 2,
+            estimatedHours: 8,
+            actualHours: 0,
+            progress: 0,
+            skills: [{ name: "Excel", minimumLevel: 2 }],
+        },
+        {
+            title: "Analyze customer support trends",
+            email: "pooja@workforce.local",
+            priority: "LOW",
+            status: "COMPLETED",
+            dueInDays: -2,
+            estimatedHours: 5,
+            actualHours: 4,
+            progress: 100,
+            completedDaysAgo: 1,
+            skills: [{ name: "Data Analysis", minimumLevel: 2 }],
+        },
+        {
+            title: "Coordinate cross-team release readiness",
+            email: "yash@workforce.local",
+            priority: "HIGH",
+            status: "BLOCKED",
+            dueInDays: 2,
+            estimatedHours: 6,
+            actualHours: 3,
+            progress: 50,
+            skills: [{ name: "Project Management", minimumLevel: 2 }],
+        },
+        {
+            title: "Prepare product adoption dashboard",
+            email: "tanya@workforce.local",
+            priority: "MEDIUM",
+            status: "TODO",
+            dueInDays: 8,
+            estimatedHours: 6,
+            actualHours: 0,
+            progress: 0,
+            skills: [{ name: "Power BI", minimumLevel: 2 }],
+        },
     ];
 
     const admin = seededUsers["admin@workforce.local"];
@@ -682,7 +832,7 @@ async function seedTasks(seededUsers, employeeByEmail) {
     console.log(`Users: ${users.length}`);
     console.log(`Departments: ${departments.length}`);
     console.log(`Employee profiles: ${Object.keys(employeeByEmail).length}`);
-    console.log("Demo tasks: 12");
+    console.log("Demo tasks: 20");
 }
 
 seedDatabase()

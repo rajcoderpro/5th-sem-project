@@ -10,6 +10,8 @@ import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import AdminLayout from "./layouts/AdminLayout.jsx";
 import AdminDashboard from "./pages/admin/AdminDashboard.jsx";
 import EmployeesPage from "./pages/admin/EmployeesPage.jsx";
+import DepartmentsPage from "./pages/admin/DepartmentsPage.jsx";
+import TasksPage from "./pages/admin/TasksPage.jsx";
 
 export default function App() {
   return (
@@ -40,6 +42,16 @@ export default function App() {
         <Route
           path="employees"
           element={<EmployeesPage />}
+        />
+
+        <Route
+          path="departments"
+          element={<DepartmentsPage />}
+        />
+
+        <Route
+          path="tasks"
+          element={<TasksPage />}
         />
       </Route>
 

@@ -2,7 +2,6 @@
 import { Link, useLocation } from "react-router-dom";
 
 import {
-  Activity,
   Building2,
   ClipboardList,
   LayoutDashboard,
@@ -28,15 +27,15 @@ const navigation = [
   },
   {
     label: "Departments",
-    href: null,
+    href: "/admin/departments",
     icon: Building2,
-    available: false,
+    available: true,
   },
   {
     label: "Tasks",
-    href: null,
+    href: "/admin/tasks",
     icon: ClipboardList,
-    available: false,
+    available: true,
   },
 ];
 
@@ -59,7 +58,6 @@ export default function AdminSidebar({ open, onClose }) {
           open ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0`}
       >
-        {/* Logo */}
         <div className="flex h-[76px] items-center justify-between border-b border-white/[.07] px-6">
           <Link
             to="/admin/dashboard"
@@ -91,7 +89,6 @@ export default function AdminSidebar({ open, onClose }) {
           </button>
         </div>
 
-        {/* Navigation */}
         <div className="px-5 pt-8">
           <p className="mb-4 px-3 text-[10px] font-semibold tracking-[.2em] text-slate-600">
             WORKSPACE
@@ -102,20 +99,16 @@ export default function AdminSidebar({ open, onClose }) {
               const Icon = item.icon;
               const active = location.pathname === item.href;
 
-              const className = `flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
-                active
-                  ? "border border-violet-400/15 bg-violet-500/[.12] text-violet-200"
-                  : item.available
-                    ? "text-slate-400 hover:bg-white/[.04] hover:text-white"
-                    : "cursor-not-allowed text-slate-600"
-              }`;
-
-              return item.available ? (
+              return (
                 <Link
                   key={item.label}
                   to={item.href}
                   onClick={onClose}
-                  className={className}
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left text-sm transition ${
+                    active
+                      ? "border border-violet-400/15 bg-violet-500/[.12] text-violet-200"
+                      : "text-slate-400 hover:bg-white/[.04] hover:text-white"
+                  }`}
                 >
                   <Icon
                     size={18}
@@ -133,28 +126,11 @@ export default function AdminSidebar({ open, onClose }) {
                     />
                   )}
                 </Link>
-              ) : (
-                <div
-                  key={item.label}
-                  aria-disabled="true"
-                  title="Coming soon"
-                  className={className}
-                >
-                  <Icon size={18} className="text-slate-600" />
-
-                  <span className="flex-1">{item.label}</span>
-
-                  <LockKeyhole
-                    size={12}
-                    className="text-slate-700"
-                  />
-                </div>
               );
             })}
           </div>
         </div>
 
-        {/* Bottom panel */}
         <div className="mt-auto p-5">
           <div className="relative overflow-hidden rounded-2xl border border-violet-400/15 bg-gradient-to-br from-violet-500/[.12] to-blue-500/[.04] p-4">
             <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full bg-violet-500/20 blur-2xl" />
@@ -167,7 +143,7 @@ export default function AdminSidebar({ open, onClose }) {
               </p>
 
               <p className="mt-1 text-xs leading-5 text-slate-400">
-                Manage your people, tasks and teams from one workspace.
+                Manage people, tasks and teams from one workspace.
               </p>
 
               <div className="mt-4 flex items-center gap-2 text-[10px] text-cyan-300">
