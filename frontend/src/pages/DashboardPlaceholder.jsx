@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { LayoutDashboard, Sparkles } from "lucide-react";
+import { LayoutDashboard, Sparkles ,Clock3} from "lucide-react";
 
 export default function DashboardPlaceholder({ role }) {
   const isAdmin = role === "ADMIN";
@@ -28,7 +28,15 @@ export default function DashboardPlaceholder({ role }) {
           Login redirect is working. Your {isAdmin ? "admin" : "employee"}{" "}
           dashboard UI will be built here next.
         </p>
-
+        {role === "EMPLOYEE" && (
+          <Link
+            to="/employee/attendance"
+            className="mt-6 inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[.07] px-5 py-3 text-sm font-medium text-cyan-200 transition hover:-translate-y-0.5 hover:bg-cyan-400/[.12]"
+          >
+            <Clock3 size={17} />
+            Manage my attendance
+          </Link>
+        )}
         <Link
           to="/"
           className="mt-8 inline-flex rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5"

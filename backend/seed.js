@@ -1,7 +1,3 @@
-
-// Run from the backend directory with: node seed.js
-// Required in backend/.env: MONGOOSE_URI, SEED_ADMIN_PASSWORD,
-// and SEED_EMPLOYEE_PASSWORD.
 const mongoose = require('mongoose')
 require( "dotenv" ).config();
 
@@ -15,6 +11,8 @@ async function seedDatabase() {
     await mongoose.connect(mongoUri);
 const employeeModel = require("./models/employee.model");
 const taskModel = require("./models/task.model");
+const leaveModel = require("./models/leave.model");
+const attendanceModel = require("./models/attendance.model");
 const bcrypt = require( "bcryptjs" );
 
 const userModel = require( "./models/user.model" );
@@ -347,9 +345,24 @@ async function seedDepartments(adminId) {
                 );
             }
 
-            departmentsByCode[data.code] = existingByCode;
+            const updatedDepartment = await departmentModel.findByIdAndUpdate(
+                existingByCode._id,
+                {
+                    $set: {
+                        name: data.name,
+                        code: data.code,
+                        description: data.description,
+                    },
+                },
+                {
+                    new: true,
+                    runValidators: true,
+                }
+            );
 
-            console.log(`Found existing department: ${data.name}`);
+            departmentsByCode[data.code] = updatedDepartment;
+
+            console.log(`Updated existing department: ${data.name}`);
             continue;
         }
 
@@ -481,6 +494,319 @@ async function seedEmployees(seededUsers, departmentsByCode, adminId) {
     return employeeByEmail;
 }
 
+
+async function seedLeaves(adminId, employeeByEmail) {
+    const day = 24 * 60 * 60 * 1000;
+    const baseDate = new Date();
+    baseDate.setUTCHours(12, 0, 0, 0);
+
+    const dateOffset = (offset) => {
+        const date = new Date(baseDate);
+        date.setUTCDate(date.getUTCDate() + offset);
+        return date;
+    };
+
+    const leaveSeeds = [
+        {
+            email: "aarav@workforce.local",
+            leaveType: "SICK",
+            status: "APPROVED",
+            startOffset: -20,
+            endOffset: -19,
+            reason: "DEMO-SEED: Fever and recovery",
+            adminRemarks: "Approved. Get well soon.",
+        },
+        {
+            email: "priya@workforce.local",
+            leaveType: "CASUAL",
+            status: "PENDING",
+            startOffset: 3,
+            endOffset: 4,
+            reason: "DEMO-SEED: Personal work",
+            adminRemarks: "",
+        },
+        {
+            email: "kabir@workforce.local",
+            leaveType: "EARNED",
+            status: "REJECTED",
+            startOffset: -12,
+            endOffset: -11,
+            reason: "DEMO-SEED: Family function",
+            adminRemarks: "Rejected due to a critical campaign deadline.",
+        },
+        {
+            email: "ananya@workforce.local",
+            leaveType: "CASUAL",
+            status: "APPROVED",
+            startOffset: -8,
+            endOffset: -8,
+            reason: "DEMO-SEED: Personal appointment",
+            adminRemarks: "Approved by the department administrator.",
+        },
+        {
+            email: "rohan@workforce.local",
+            leaveType: "SICK",
+            status: "CANCELLED",
+            startOffset: 10,
+            endOffset: 11,
+            reason: "DEMO-SEED: Medical appointment cancelled",
+            adminRemarks: "",
+        },
+        {
+            email: "ishita@workforce.local",
+            leaveType: "EARNED",
+            status: "PENDING",
+            startOffset: 6,
+            endOffset: 8,
+            reason: "DEMO-SEED: Planned family visit",
+            adminRemarks: "",
+        },
+        {
+            email: "arjun@workforce.local",
+            leaveType: "CASUAL",
+            status: "APPROVED",
+            startOffset: -35,
+            endOffset: -34,
+            reason: "DEMO-SEED: Family commitment",
+            adminRemarks: "Approved.",
+        },
+        {
+            email: "sneha@workforce.local",
+            leaveType: "OTHER",
+            status: "REJECTED",
+            startOffset: -5,
+            endOffset: -4,
+            reason: "DEMO-SEED: Extended personal travel",
+            adminRemarks: "Rejected because the requested dates were not available.",
+        },
+        {
+            email: "aditya@workforce.local",
+            leaveType: "SICK",
+            status: "PENDING",
+            startOffset: 14,
+            endOffset: 15,
+            reason: "DEMO-SEED: Follow-up medical check-up",
+            adminRemarks: "",
+        },
+        {
+            email: "meera@workforce.local",
+            leaveType: "EARNED",
+            status: "APPROVED",
+            startOffset: -45,
+            endOffset: -43,
+            reason: "DEMO-SEED: Planned annual leave",
+            adminRemarks: "Approved as per the team leave plan.",
+        },
+        {
+            email: "vikram@workforce.local",
+            leaveType: "CASUAL",
+            status: "CANCELLED",
+            startOffset: 20,
+            endOffset: 21,
+            reason: "DEMO-SEED: Personal plans changed",
+            adminRemarks: "",
+        },
+        {
+            email: "kavya@workforce.local",
+            leaveType: "UNPAID",
+            status: "PENDING",
+            startOffset: 25,
+            endOffset: 26,
+            reason: "DEMO-SEED: Personal commitment",
+            adminRemarks: "",
+        },
+    ];
+
+    for (const data of leaveSeeds) {
+        const employee = employeeByEmail[data.email];
+
+        if (!employee) {
+            throw new Error(`Employee not found for leave request: ${data.email}`);
+        }
+
+        const startDate = dateOffset(data.startOffset);
+        const endDate = dateOffset(data.endOffset);
+        const isReviewed = ["APPROVED", "REJECTED"].includes(data.status);
+
+        const leaveData = {
+            employeeId: employee._id,
+            leaveType: data.leaveType,
+            startDate,
+            endDate,
+            reason: data.reason,
+            status: data.status,
+            adminRemarks: data.adminRemarks,
+            reviewedBy: isReviewed ? adminId : null,
+            reviewedAt: isReviewed
+                ? new Date(startDate.getTime() - 2 * day)
+                : null,
+        };
+
+        await leaveModel.findOneAndUpdate(
+            {
+                employeeId: employee._id,
+                reason: data.reason,
+            },
+            { $set: leaveData },
+            {
+                upsert: true,
+                new: true,
+                runValidators: true,
+                setDefaultsOnInsert: true,
+            }
+        );
+
+        console.log(`Seeded leave: ${data.email} (${data.status})`);
+    }
+
+    return leaveSeeds.length;
+}
+async function seedAttendance(adminId, employeeByEmail) {
+    const day = 24 * 60 * 60 * 1000;
+
+    // Convert today's date to IST, then store attendanceDate at UTC midnight.
+    const nowIST = new Date(Date.now() + 330 * 60 * 1000);
+
+    const today = new Date(Date.UTC(
+        nowIST.getUTCFullYear(),
+        nowIST.getUTCMonth(),
+        nowIST.getUTCDate()
+    ));
+
+    const dateKey = (date) => new Date(date).toISOString().slice(0, 10);
+
+    // Convert an IST clock time into a JavaScript Date.
+    const toISTTime = (date, hours, minutes) => {
+        return new Date(Date.UTC(
+            date.getUTCFullYear(),
+            date.getUTCMonth(),
+            date.getUTCDate(),
+            hours - 5,
+            minutes - 30
+        ));
+    };
+
+    const employees = Object.values(employeeByEmail);
+    let count = 0;
+
+    for (let i = 0; i < employees.length; i++) {
+        const employee = employees[i];
+
+        // Do not generate attendance on approved leave dates.
+        const approvedLeaves = await leaveModel.find({
+            employeeId: employee._id,
+            status: "APPROVED",
+        }).select("startDate endDate").lean();
+
+        for (let offset = 1; offset <= 30; offset++) {
+            const attendanceDate = new Date(today.getTime() - offset * day);
+            const weekday = attendanceDate.getUTCDay();
+
+            // Skip Saturday and Sunday.
+            if (weekday === 0 || weekday === 6) continue;
+
+            const currentDateKey = dateKey(attendanceDate);
+
+            const onLeave = approvedLeaves.some((leave) => {
+                return (
+                    currentDateKey >= dateKey(leave.startDate) &&
+                    currentDateKey <= dateKey(leave.endDate)
+                );
+            });
+
+            if (onLeave) continue;
+
+            const pattern = (i * 7 + offset * 3) % 20;
+
+            let status = "PRESENT";
+            let checkInAt = null;
+            let checkOutAt = null;
+            let isLate = false;
+
+            if (pattern === 0) {
+                status = "ABSENT";
+            } else if (pattern === 1) {
+                status = "HALF_DAY";
+
+                checkInAt = toISTTime(attendanceDate, 9, 30);
+                checkOutAt = toISTTime(
+                    attendanceDate,
+                    13,
+                    10 + (i % 11)
+                );
+            } else if (pattern >= 2 && pattern <= 4) {
+                status = "LATE";
+                isLate = true;
+
+                checkInAt = toISTTime(
+                    attendanceDate,
+                    10,
+                    i % 20
+                );
+
+                checkOutAt = toISTTime(
+                    attendanceDate,
+                    18,
+                    i % 20
+                );
+            } else {
+                checkInAt = toISTTime(
+                    attendanceDate,
+                    9,
+                    20 + (i + offset) % 20
+                );
+
+                checkOutAt = toISTTime(
+                    attendanceDate,
+                    17,
+                    45 + (i + offset) % 30
+                );
+            }
+
+            const workedMinutes =
+                checkInAt && checkOutAt
+                    ? Math.round(
+                        (checkOutAt.getTime() - checkInAt.getTime()) / 60000
+                    )
+                    : 0;
+
+            const attendanceData = {
+                employeeId: employee._id,
+                attendanceDate,
+                checkInAt,
+                checkOutAt,
+                workedMinutes,
+                status,
+                isLate,
+                markedBy: adminId,
+                adminRemarks:
+                    status === "ABSENT"
+                        ? "DEMO-SEED: No attendance recorded"
+                        : "",
+            };
+
+            await attendanceModel.findOneAndUpdate(
+                {
+                    employeeId: employee._id,
+                    attendanceDate,
+                },
+                { $set: attendanceData },
+                {
+                    upsert: true,
+                    new: true,
+                    runValidators: true,
+                    setDefaultsOnInsert: true,
+                }
+            );
+
+            count++;
+        }
+    }
+
+    console.log(`Seeded attendance records: ${count}`);
+
+    return count;
+}
 async function seedTasks(seededUsers, employeeByEmail) {
     const day = 24 * 60 * 60 * 1000;
     const now = Date.now();
@@ -826,12 +1152,19 @@ async function seedTasks(seededUsers, employeeByEmail) {
         admin._id
     );
 
+    const seededLeaveCount = await seedLeaves(admin._id, employeeByEmail);
+    const seededAttendanceCount = await seedAttendance(
+    admin._id,
+    employeeByEmail
+    );
     await seedTasks(seededUsers, employeeByEmail);
 
     console.log("Database seeding completed successfully!");
     console.log(`Users: ${users.length}`);
     console.log(`Departments: ${departments.length}`);
+    console.log(`Attendance records: ${seededAttendanceCount}`);
     console.log(`Employee profiles: ${Object.keys(employeeByEmail).length}`);
+    console.log(`Leave requests: ${seededLeaveCount}`);
     console.log("Demo tasks: 20");
 }
 

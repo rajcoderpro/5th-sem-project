@@ -10,6 +10,7 @@ import {
   Zap,
   ChevronRight,
   LockKeyhole,
+  CalendarCheck,
 } from "lucide-react";
 
 const navigation = [
@@ -32,11 +33,18 @@ const navigation = [
     available: true,
   },
   {
+  label: "Attendance",
+  href: "/admin/attendance",
+  icon: CalendarCheck,
+  available: true,
+  },
+  {
     label: "Tasks",
     href: "/admin/tasks",
     icon: ClipboardList,
     available: true,
   },
+  
 ];
 
 export default function AdminSidebar({ open, onClose }) {

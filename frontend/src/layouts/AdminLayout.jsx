@@ -14,11 +14,13 @@ export default function AdminLayout() {
   const location = useLocation();
 
   const pageTitle = location.pathname.endsWith("/employees")
-    ? "Employees"
-    : location.pathname.endsWith("/departments")
-      ? "Departments"
-      : location.pathname.endsWith("/tasks")
-        ? "Tasks"
+  ? "Employees"
+  : location.pathname.endsWith("/departments")
+    ? "Departments"
+    : location.pathname.endsWith("/tasks")
+      ? "Tasks"
+      : location.pathname.endsWith("/attendance")
+        ? "Attendance"
         : "Dashboard";
 
   const handleLogout = async () => {
