@@ -483,6 +483,9 @@ export default function EmployeeDashboard() {
             <Link to="/employee/attendance" className="inline-flex items-center gap-2 rounded-xl border border-cyan-400/20 bg-cyan-400/[.07] px-4 py-3 text-xs font-semibold text-cyan-200 transition hover:-translate-y-0.5 hover:bg-cyan-400/[.12]">
               <Clock3 size={15} /> Attendance
             </Link>
+            <Link to="/employee/leaves" className="inline-flex items-center gap-2 rounded-xl border border-amber-400/20 bg-amber-400/[.07] px-4 py-3 text-xs font-semibold text-amber-200 transition hover:-translate-y-0.5 hover:bg-amber-400/[.12]">
+              <FileClock size={15} /> Leave history
+            </Link>
             <button type="button" onClick={() => setLeaveModalOpen(true)} className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-blue-600 px-4 py-3 text-xs font-semibold text-white shadow-[0_0_35px_rgba(124,58,237,.18)] transition hover:-translate-y-0.5">
               <CalendarPlus size={15} /> Request leave
             </button>
@@ -598,7 +601,7 @@ export default function EmployeeDashboard() {
           <SectionHeading
             eyebrow="TIME OFF"
             title="Recent leave requests"
-            action={<button type="button" onClick={() => setLeaveModalOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-violet-400/20 bg-violet-400/[.07] px-3 py-2 text-[10px] font-semibold text-violet-200 transition hover:bg-violet-400/[.12]"><CalendarPlus size={13} /> New request</button>}
+            action={<div className="flex items-center gap-3"><Link to="/employee/leaves" className="inline-flex items-center gap-1 text-[10px] font-semibold text-cyan-300 transition hover:text-cyan-200">Manage all <ArrowRight size={12} /></Link><button type="button" onClick={() => setLeaveModalOpen(true)} className="inline-flex items-center gap-1.5 rounded-lg border border-violet-400/20 bg-violet-400/[.07] px-3 py-2 text-[10px] font-semibold text-violet-200 transition hover:bg-violet-400/[.12]"><CalendarPlus size={13} /> New request</button></div>}
           />
           {leaves.length === 0 ? (
             <div className="rounded-xl border border-dashed border-white/10 px-4 py-8 text-center">

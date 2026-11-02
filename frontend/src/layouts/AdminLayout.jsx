@@ -21,7 +21,9 @@ export default function AdminLayout() {
       ? "Tasks"
       : location.pathname.endsWith("/attendance")
         ? "Attendance"
-        : "Dashboard";
+        : location.pathname.endsWith("/leaves")
+          ? "Leave Requests"
+          : "Dashboard";
 
   const handleLogout = async () => {
     try {

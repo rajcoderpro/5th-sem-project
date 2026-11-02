@@ -11,6 +11,7 @@ import {
   ChevronRight,
   LockKeyhole,
   CalendarCheck,
+  CalendarDays,
 } from "lucide-react";
 
 const navigation = [
@@ -42,6 +43,12 @@ const navigation = [
     label: "Tasks",
     href: "/admin/tasks",
     icon: ClipboardList,
+    available: true,
+  },
+  {
+    label: "Leave Requests",
+    href: "/admin/leaves",
+    icon: CalendarDays,
     available: true,
   },
   

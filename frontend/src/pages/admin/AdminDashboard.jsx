@@ -1,8 +1,10 @@
 
 import { useCallback, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 import {
   Building2,
+  CalendarDays,
   ClipboardList,
   RefreshCw,
   UserCheck,
@@ -32,6 +34,7 @@ const initialDashboard = {
   departments: [],
   tasks: [],
   taskCounts: {},
+  pendingLeaves: 0,
 };
 
 export default function AdminDashboard() {
@@ -69,6 +72,8 @@ export default function AdminDashboard() {
             `/api/tasks?status=${status}&page=1&limit=1`
           )
         ),
+
+        apiGet("/api/leaves?status=PENDING&page=1&limit=1"),
       ]);
 
       const taskCounts = {};
@@ -84,6 +89,9 @@ export default function AdminDashboard() {
         departments: departmentResult.departments || [],
         tasks: taskResult.tasks || [],
         taskCounts,
+        pendingLeaves: Number(
+          statusResults[TASK_STATUSES.length]?.pagination?.total || 0
+        ),
       });
     } catch (err) {
       console.error("Admin dashboard loading error:", err);
@@ -101,7 +109,7 @@ export default function AdminDashboard() {
     loadDashboard(true);
   }, [loadDashboard]);
 
-  const { employees, departments, tasks, taskCounts } = dashboard;
+  const { employees, departments, tasks, taskCounts, pendingLeaves } = dashboard;
 
   const activeEmployees = employees.filter(
     (employee) => employee.employmentStatus === "ACTIVE"
@@ -251,6 +259,28 @@ export default function AdminDashboard() {
               />
             ))}
           </div>
+
+          {/* Leave approvals shortcut */}
+          <Link
+            to="/admin/leaves"
+            className="group flex flex-col gap-4 rounded-2xl border border-amber-400/15 bg-gradient-to-r from-amber-400/[.08] via-[#0d1020] to-violet-500/[.06] p-5 transition hover:-translate-y-0.5 hover:border-amber-300/30 sm:flex-row sm:items-center sm:justify-between sm:px-6"
+          >
+            <div className="flex items-center gap-4">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-amber-400/15 bg-amber-400/[.09] text-amber-300">
+                <CalendarDays size={21} />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-slate-100">Leave requests</p>
+                <p className="mt-1 text-xs text-slate-500">Review employee applications and approve or reject pending requests.</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 pl-16 sm:pl-0">
+              <span className="rounded-full border border-amber-400/20 bg-amber-400/[.08] px-3 py-1.5 text-xs font-semibold text-amber-200">
+                {pendingLeaves} pending
+              </span>
+              <span className="text-xs font-semibold text-violet-300 transition group-hover:translate-x-1">Review requests →</span>
+            </div>
+          </Link>
 
           {/* Task distribution + departments */}
           <div className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">

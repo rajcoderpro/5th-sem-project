@@ -12,10 +12,12 @@ import EmployeesPage from "./pages/admin/EmployeesPage.jsx";
 import DepartmentsPage from "./pages/admin/DepartmentsPage.jsx";
 import TasksPage from "./pages/admin/TasksPage.jsx";
 import AttendancePage from "./pages/admin/AttendancePage.jsx";
+import LeavesPage from "./pages/admin/LeavesPage.jsx";
 
 import EmployeeDashboard from "./pages/employee/EmployeeDashboard.jsx";
 import EmployeeTasksPage from "./pages/employee/EmployeeTasksPage.jsx";
 import EmployeeAttendancePage from "./pages/employee/EmployeeAttendancePage.jsx";
+import EmployeeLeavePage from "./pages/employee/EmployeeLeavePage.jsx";
 
 export default function App() {
   return (
@@ -39,6 +41,7 @@ export default function App() {
         <Route path="departments" element={<DepartmentsPage />} />
         <Route path="tasks" element={<TasksPage />} />
         <Route path="attendance" element={<AttendancePage />} />
+        <Route path="leaves" element={<LeavesPage />} />
       </Route>
 
       {/* Protected employee workspace */}
@@ -63,6 +66,14 @@ export default function App() {
         element={
           <ProtectedRoute allowedRoles={["EMPLOYEE"]}>
             <EmployeeAttendancePage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/employee/leaves"
+        element={
+          <ProtectedRoute allowedRoles={["EMPLOYEE"]}>
+            <EmployeeLeavePage />
           </ProtectedRoute>
         }
       />

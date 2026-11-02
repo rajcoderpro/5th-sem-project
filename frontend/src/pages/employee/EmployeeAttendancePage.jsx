@@ -353,6 +353,10 @@ export default function EmployeeAttendancePage() {
         </Link>
 
         <div className="flex items-center gap-3">
+          <Link to="/employee/leaves" className="hidden items-center gap-2 rounded-xl border border-amber-400/15 bg-amber-400/[.05] px-3 py-2.5 text-xs text-amber-200 transition hover:bg-amber-400/[.1] sm:inline-flex">
+            <CalendarDays size={14} /> Leave
+          </Link>
+
           <div className="hidden text-right sm:block">
             <p className="text-xs font-semibold text-slate-200">{user?.name}</p>
             <p className="mt-1 text-[10px] text-slate-500">Employee</p>
