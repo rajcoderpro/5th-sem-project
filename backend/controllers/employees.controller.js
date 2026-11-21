@@ -565,83 +565,115 @@ const updateEmployee = async (req, res) => {
 
 // PATCH deactivate employee — Admin
 const deactivateEmployee = async (req, res) => {
+    let session;
+
     try {
         const { id } = req.params;
 
         if (!mongoose.isValidObjectId(id)) {
-            return res.status(400).json({
-                message: "Invalid employee ID"
-            });
+            return res.status(400).json({ message: "Invalid employee ID" });
         }
 
-        const employee = await employeeModel.findById(id);
+        session = await mongoose.startSession();
+        let result;
 
-        if (!employee) {
-            return res.status(404).json({
-                message: "Employee not found"
-            });
-        }
+        await session.withTransaction(async () => {
+            const employee = await employeeModel.findById(id).session(session);
 
-        if (employee.employmentStatus === "TERMINATED") {
-            return res.status(409).json({
-                message: "Terminated employee cannot be deactivated"
-            });
-        }
+            if (!employee) {
+                result = { status: 404, message: "Employee not found" };
+                return;
+            }
 
-        employee.employmentStatus = "INACTIVE";
-        employee.updatedBy = req.user.id;
-        await employee.save();
+            if (employee.employmentStatus === "TERMINATED") {
+                result = {
+                    status: 409,
+                    message: "Terminated employee cannot be deactivated",
+                };
+                return;
+            }
 
-        await userModel.findByIdAndUpdate(employee.userId, {
-            status: "SUSPENDED"
+            const linkedUser = await userModel.findById(employee.userId).session(session);
+
+            if (!linkedUser) {
+                throw new Error("Linked user account was not found; employee deactivation was rolled back");
+            }
+
+            employee.employmentStatus = "INACTIVE";
+            employee.updatedBy = req.user.id;
+            linkedUser.status = "SUSPENDED";
+
+            await employee.save({ session });
+            await linkedUser.save({ session });
+
+            result = {
+                status: 200,
+                message: "Employee deactivated successfully",
+            };
         });
 
-        return res.status(200).json({
-            message: "Employee deactivated successfully"
-        });
+        return res.status(result.status).json({ message: result.message });
     } catch (error) {
         return handleError(res, error);
+    } finally {
+        if (session) await session.endSession();
     }
 };
 
-// PATCH activate employee — Admin
+// PATCH activate employee — Admin. Keep Employee and User status in sync atomically.
 const activateEmployee = async (req, res) => {
+    let session;
+
     try {
         const { id } = req.params;
 
         if (!mongoose.isValidObjectId(id)) {
-            return res.status(400).json({
-                message: "Invalid employee ID"
-            });
+            return res.status(400).json({ message: "Invalid employee ID" });
         }
 
-        const employee = await employeeModel.findById(id);
+        session = await mongoose.startSession();
+        let result;
 
-        if (!employee) {
-            return res.status(404).json({
-                message: "Employee not found"
-            });
-        }
+        await session.withTransaction(async () => {
+            const employee = await employeeModel.findById(id).session(session);
 
-        if (employee.employmentStatus === "TERMINATED") {
-            return res.status(409).json({
-                message: "Terminated employee cannot be reactivated"
-            });
-        }
+            if (!employee) {
+                result = { status: 404, message: "Employee not found" };
+                return;
+            }
 
-        employee.employmentStatus = "ACTIVE";
-        employee.updatedBy = req.user.id;
-        await employee.save();
+            if (employee.employmentStatus === "TERMINATED") {
+                result = {
+                    status: 409,
+                    message: "Terminated employee cannot be reactivated",
+                };
+                return;
+            }
 
-        await userModel.findByIdAndUpdate(employee.userId, {
-            status: "ACTIVE"
+            const linkedUser = await userModel.findById(employee.userId).session(session);
+
+            if (!linkedUser) {
+                throw new Error("Linked user account was not found; employee activation was rolled back");
+            }
+
+            employee.employmentStatus = "ACTIVE";
+            employee.updatedBy = req.user.id;
+            linkedUser.status = "ACTIVE";
+
+            await employee.save({ session });
+            await linkedUser.save({ session });
+
+            result = {
+                status: 200,
+                message: "Employee activated successfully",
+            };
         });
 
-        return res.status(200).json({
-            message: "Employee activated successfully"
-        });
+        return res.status(result.status).json({ message: result.message });
     } catch (error) {
         return handleError(res, error);
+    } finally {
+        if (session) await session.endSession();
     }
 };
 

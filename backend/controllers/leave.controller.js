@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 
 const leaveModel = require("../models/leave.model");
 const employeeModel = require("../models/employee.model");
+const { createNotification, notifyAdmins } = require("../services/notification.service");
 
 const LEAVE_TYPES = [
     "CASUAL",
@@ -226,6 +227,14 @@ const applyForLeave = asyncHandler(async (req, res) => {
         startDate,
         endDate,
         reason,
+    });
+
+    await notifyAdmins({
+        type: "LEAVE_SUBMITTED",
+        title: "New leave request",
+        message: `A leave request (${leaveType}) is awaiting review.`,
+        entityType: "LEAVE",
+        entityId: leave._id,
     });
 
     const populatedLeave = await populateLeave(
@@ -524,6 +533,20 @@ const reviewLeave = asyncHandler(async (req, res) => {
     leave.reviewedAt = new Date();
 
     await leave.save();
+
+    const employee = await employeeModel.findById(leave.employeeId).select("userId");
+    if (employee?.userId) {
+        await createNotification({
+            recipient: employee.userId,
+            type: "LEAVE_REVIEWED",
+            title: `Leave request ${status.toLowerCase()}`,
+            message: adminRemarks
+                ? `Your leave request was ${status.toLowerCase()}. Admin remarks: ${adminRemarks}`
+                : `Your leave request was ${status.toLowerCase()}.`,
+            entityType: "LEAVE",
+            entityId: leave._id,
+        });
+    }
 
     const populatedLeave = await populateLeave(
         leaveModel.findById(leave._id)

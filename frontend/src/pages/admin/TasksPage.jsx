@@ -28,6 +28,7 @@ import TaskFormModal from "../../components/admin/TaskFormModal.jsx";
 import TaskAssignmentModal from "../../components/admin/TaskAssignmentModal.jsx";
 import TaskStatusModal from "../../components/admin/TaskStatusModal.jsx";
 import TaskTable from "../../components/admin/TaskTable.jsx";
+import TaskActivityModal from "../../components/shared/TaskActivityModal.jsx";
 
 const LIMIT = 10;
 
@@ -109,6 +110,7 @@ export default function TasksPage() {
 
     const [assignmentTask, setAssignmentTask] = useState( null );
     const [statusTask, setStatusTask] = useState( null );
+    const [activityTask, setActivityTask] = useState(null);
 
     // Load tasks using backend filters and pagination.
     const loadTasks = useCallback( async () => {
@@ -686,6 +688,7 @@ export default function TasksPage() {
                     onEdit={openEditModal}
                     onAssign={setAssignmentTask}
                     onUpdateProgress={setStatusTask}
+                    onViewActivity={setActivityTask}
                 />
             </div>
 
@@ -763,6 +766,11 @@ export default function TasksPage() {
                 task={statusTask}
                 onClose={() => setStatusTask( null )}
                 onSubmit={handleStatusUpdate}
+            />
+
+            <TaskActivityModal
+                task={activityTask}
+                onClose={() => setActivityTask(null)}
             />
         </div>
     );

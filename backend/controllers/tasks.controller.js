@@ -4,6 +4,9 @@ const mongoose = require("mongoose");
 const taskModel = require("../models/task.model");
 const employeeModel = require("../models/employee.model");
 const departmentModel = require("../models/department.model");
+const taskActivityModel = require("../models/taskActivity.model");
+const { recordTaskActivity } = require("../services/taskActivity.service");
+const { createNotification, notifyAdmins } = require("../services/notification.service");
 
 const STATUSES = [
     "TODO",
@@ -255,6 +258,13 @@ const createTask = asyncHandler(async (req, res) => {
         tags: tagsResult.value
     });
 
+    await recordTaskActivity({
+        taskId: task._id,
+        actor: req.user.id,
+        action: "CREATED",
+        message: `Task created: ${task.title}`,
+    });
+
     const populatedTask = await populateTask(
         taskModel.findById(task._id)
     );
@@ -372,6 +382,36 @@ const getMyTasks = asyncHandler(async (req, res) => {
             totalPages: Math.ceil(total / limit)
         }
     });
+});
+
+// GET /api/tasks/:id/activities — Admin or assigned employee
+const getTaskActivities = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+
+    if (!isValidId(id)) {
+        return res.status(400).json({ message: "Invalid task ID" });
+    }
+
+    const task = await taskModel.findById(id).select("_id assignedTo");
+
+    if (!task) {
+        return res.status(404).json({ message: "Task not found" });
+    }
+
+    if (req.user.role !== "ADMIN") {
+        const employee = await employeeModel.findOne({ userId: req.user.id }).select("_id");
+        if (!employee || !task.assignedTo || task.assignedTo.toString() !== employee._id.toString()) {
+            return res.status(403).json({ message: "You cannot access this task history" });
+        }
+    }
+
+    const activities = await taskActivityModel.find({ taskId: id })
+        .populate("actor", "name email role")
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .lean();
+
+    return res.status(200).json({ activities });
 });
 
 // GET /api/tasks/:id — Admin or assigned employee
@@ -613,6 +653,13 @@ const updateTask = asyncHandler(async (req, res) => {
         { new: true, runValidators: true }
     );
 
+    await recordTaskActivity({
+        taskId: task._id,
+        actor: req.user.id,
+        action: "DETAILS_UPDATED",
+        message: "Task details updated by an administrator",
+    });
+
     const updatedTask = await populateTask(
         taskModel.findById(id)
     );
@@ -659,10 +706,36 @@ const assignTask = asyncHandler(async (req, res) => {
         });
     }
 
+    const previousEmployeeId = task.assignedTo?.toString() || null;
     task.assignedTo = employee._id;
     task.updatedBy = req.user.id;
 
     await task.save();
+
+    if (previousEmployeeId !== employee._id.toString()) {
+        const isReassignment = Boolean(previousEmployeeId);
+        const employeeAccount = await employeeModel.findById(employee._id).select("userId");
+
+        await recordTaskActivity({
+            taskId: task._id,
+            actor: req.user.id,
+            action: isReassignment ? "REASSIGNED" : "ASSIGNED",
+            message: `${isReassignment ? "Task reassigned" : "Task assigned"} to employee ${employee.employeeCode}`,
+            fromValue: previousEmployeeId || "",
+            toValue: employee._id.toString(),
+        });
+
+        if (employeeAccount?.userId) {
+            await createNotification({
+                recipient: employeeAccount.userId,
+                type: isReassignment ? "TASK_REASSIGNED" : "TASK_ASSIGNED",
+                title: isReassignment ? "Task reassigned to you" : "New task assigned",
+                message: `You have been assigned: ${task.title}`,
+                entityType: "TASK",
+                entityId: task._id,
+            });
+        }
+    }
 
     const populatedTask = await populateTask(
         taskModel.findById(task._id)
@@ -741,6 +814,7 @@ const updateTaskStatus = asyncHandler(async (req, res) => {
         }
     }
 
+    const previousStatus = task.status;
     task.status = status;
     task.updatedBy = req.user.id;
 
@@ -763,6 +837,39 @@ const updateTaskStatus = asyncHandler(async (req, res) => {
 
     await task.save();
 
+    if (previousStatus !== status) {
+        await recordTaskActivity({
+            taskId: task._id,
+            actor: req.user.id,
+            action: "STATUS_CHANGED",
+            message: `Task status changed from ${previousStatus} to ${status}`,
+            fromValue: previousStatus,
+            toValue: status,
+        });
+
+        if (status === "IN_REVIEW" && req.user.role === "EMPLOYEE") {
+            await notifyAdmins({
+                type: "TASK_REVIEW_SUBMITTED",
+                title: "Task submitted for review",
+                message: `An employee submitted ${task.title} for review.`,
+                entityType: "TASK",
+                entityId: task._id,
+            });
+        } else if (req.user.role === "ADMIN" && task.assignedTo) {
+            const assignedEmployee = await employeeModel.findById(task.assignedTo).select("userId");
+            if (assignedEmployee?.userId) {
+                await createNotification({
+                    recipient: assignedEmployee.userId,
+                    type: "TASK_STATUS_UPDATED",
+                    title: "Task status updated",
+                    message: `${task.title} is now ${status.replaceAll("_", " ")}.`,
+                    entityType: "TASK",
+                    entityId: task._id,
+                });
+            }
+        }
+    }
+
     const populatedTask = await populateTask(
         taskModel.findById(task._id)
     );
@@ -777,6 +884,7 @@ module.exports = {
     createTask,
     getAllTasks,
     getMyTasks,
+    getTaskActivities,
     getTaskById,
     updateTask,
     assignTask,

@@ -6,6 +6,7 @@ import {
   Activity,
   CalendarDays,
   Clock3,
+  History,
 } from "lucide-react";
 
 const statusStyles = {
@@ -66,6 +67,7 @@ export default function TaskTable({
   onEdit,
   onAssign,
   onUpdateProgress,
+  onViewActivity,
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-white/[.08] bg-[#0d1020]/90">
@@ -253,6 +255,16 @@ export default function TaskTable({
                   {/* Actions */}
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onViewActivity?.(task)}
+                        title="View task history"
+                        aria-label={`View history for ${task.title}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:border-amber-400/30 hover:bg-amber-400/10 hover:text-amber-200"
+                      >
+                        <History size={14} />
+                      </button>
+
                       <button
                         type="button"
                         onClick={() => onEdit(task)}

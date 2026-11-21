@@ -23,7 +23,11 @@ export default function AdminLayout() {
         ? "Attendance"
         : location.pathname.endsWith("/leaves")
           ? "Leave Requests"
-          : "Dashboard";
+          : location.pathname.endsWith("/notifications")
+            ? "Notifications"
+            : location.pathname.endsWith("/analytics")
+              ? "Analytics"
+              : "Dashboard";
 
   const handleLogout = async () => {
     try {

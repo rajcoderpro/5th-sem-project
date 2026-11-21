@@ -1,5 +1,6 @@
 
 import { LogOut, Menu } from "lucide-react";
+import NotificationBell from "../shared/NotificationBell.jsx";
 
 export default function AdminTopbar({
   user,
@@ -49,6 +50,8 @@ export default function AdminTopbar({
         </p>
 
         <div className="hidden h-8 w-px bg-white/10 sm:block" />
+
+        <NotificationBell />
 
         <div className="flex items-center gap-2.5">
           <div className="flex h-9 w-9 items-center justify-center rounded-full border border-violet-400/20 bg-violet-500/10 text-xs font-bold text-violet-200">

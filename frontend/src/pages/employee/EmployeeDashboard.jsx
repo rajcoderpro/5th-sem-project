@@ -21,6 +21,7 @@ import {
 
 import { useAuth } from "../../context/AuthContext.jsx";
 import { apiGet, apiRequest } from "../../services/api.js";
+import NotificationBell from "../../components/shared/NotificationBell.jsx";
 
 const EMPTY_DASHBOARD = {
   employee: null,
@@ -451,6 +452,8 @@ export default function EmployeeDashboard() {
             <p className="max-w-40 truncate text-xs font-semibold text-slate-200">{employeeName}</p>
             <p className="mt-0.5 text-[10px] text-slate-500">Employee</p>
           </div>
+          <Link to="/employee/profile" aria-label="My profile" title="My profile" className="rounded-xl border border-white/10 p-2.5 text-slate-400 transition hover:border-violet-400/30 hover:text-violet-200"><UserRound size={16} /></Link>
+          <NotificationBell />
           <button type="button" onClick={handleRefresh} disabled={refreshing} aria-label="Refresh dashboard" className="rounded-xl border border-white/10 p-2.5 text-slate-400 transition hover:border-violet-400/30 hover:text-violet-200 disabled:opacity-50">
             <RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />
           </button>

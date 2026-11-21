@@ -7,6 +7,7 @@ const { authAdmin, authEmployee, authUser } = require("../middlewares/auth.middl
 router.post("/", authAdmin, taskController.createTask);
 router.get("/", authAdmin, taskController.getAllTasks);
 router.get("/me", authEmployee, taskController.getMyTasks);
+router.get("/:id/activities", authUser, taskController.getTaskActivities);
 router.get("/:id", authUser, taskController.getTaskById);
 router.put("/:id", authAdmin, taskController.updateTask);
 router.patch("/:id/assign", authAdmin, taskController.assignTask);

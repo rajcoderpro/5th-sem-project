@@ -4,19 +4,25 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
 const TOKEN_AGE = 7 * 24 * 60 * 60 * 1000;
+const COOKIE_SAME_SITE = ["lax", "strict", "none"].includes(
+    String(process.env.COOKIE_SAME_SITE || "lax").toLowerCase()
+)
+    ? String(process.env.COOKIE_SAME_SITE || "lax").toLowerCase()
+    : "lax";
+const COOKIE_SECURE = process.env.NODE_ENV === "production" || COOKIE_SAME_SITE === "none";
 
 const cookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: COOKIE_SECURE,
+    sameSite: COOKIE_SAME_SITE,
     path: "/",
     maxAge: TOKEN_AGE,
 };
 
 const clearCookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    secure: COOKIE_SECURE,
+    sameSite: COOKIE_SAME_SITE,
     path: "/",
 };
 
@@ -40,66 +46,29 @@ const createToken = (user) => {
     );
 };
 
-// Register user
-const registerUser = async (req, res, next) => {
-    try {
-        const { name, email, password } = req.body;
-
-        if (!name || !email || !password) {
-            return res.status(400).json({
-                message: "Name, email and password are required",
-            });
-        }
-
-        if (!process.env.JWT_SECRET) {
-            return res.status(500).json({
-                message: "Authentication is not configured",
-            });
-        }
-
-        const normalizedEmail = email.trim().toLowerCase();
-
-        const existingUser = await userModel.findOne({
-            email: normalizedEmail,
-        });
-
-        if (existingUser) {
-            return res.status(409).json({
-                message: "User with this email already exists",
-            });
-        }
-
-        const hashPass = await bcrypt.hash(password, 10);
-
-        // Role is deliberately not accepted from public input.
-        // The schema assigns the default EMPLOYEE role.
-        const user = await userModel.create({
-            name: name.trim(),
-            email: normalizedEmail,
-            password: hashPass,
-        });
-
-        const token = createToken(user);
-
-        res.cookie("token", token, cookieOptions);
-
-        return res.status(201).json({
-            message: "User created successfully",
-            user: getPublicUser(user),
-        });
-    } catch (error) {
-        next(error);
-    }
+// Public registration is disabled because every employee account must be
+// created together with its Employee profile by an administrator.
+const registerUser = async (req, res) => {
+    return res.status(403).json({
+        message: "Public registration is disabled. Please contact an administrator for an employee account.",
+    });
 };
 
 // Login user
 const loginUser = async (req, res, next) => {
     try {
-        const { email, password } = req.body;
+        const { email, password } = req.body || {};
 
-        if (!email || !password) {
+        if (
+            typeof email !== "string" ||
+            typeof password !== "string" ||
+            !email.trim() ||
+            !password ||
+            email.trim().length > 254 ||
+            Buffer.byteLength(password, "utf8") > 72
+        ) {
             return res.status(400).json({
-                message: "Email and password are required",
+                message: "A valid email and password are required",
             });
         }
 

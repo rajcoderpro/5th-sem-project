@@ -12,6 +12,8 @@ import {
   LockKeyhole,
   CalendarCheck,
   CalendarDays,
+  Bell,
+  Activity,
 } from "lucide-react";
 
 const navigation = [
@@ -49,6 +51,18 @@ const navigation = [
     label: "Leave Requests",
     href: "/admin/leaves",
     icon: CalendarDays,
+    available: true,
+  },
+  {
+    label: "Analytics",
+    href: "/admin/analytics",
+    icon: Activity,
+    available: true,
+  },
+  {
+    label: "Notifications",
+    href: "/admin/notifications",
+    icon: Bell,
     available: true,
   },
   
