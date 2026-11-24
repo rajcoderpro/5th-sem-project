@@ -11,6 +11,7 @@ const taskRoutes = require("../routes/tasks.routes");
 const leaveRoutes = require("../routes/leave.routes");
 const attendanceRoutes = require("../routes/attendance.routes");
 const notificationRoutes = require("../routes/notifications.routes");
+const aiRoutes = require("../routes/ai.routes");
 const { createRateLimiter } = require("../middlewares/rateLimit.middleware");
 
 const app = express();
@@ -77,6 +78,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/leaves", leaveRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/ai", aiRoutes);
 
 app.use((req, res) => {
     return res.status(404).json({ message: "API route not found" });

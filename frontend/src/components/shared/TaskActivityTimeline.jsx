@@ -8,6 +8,7 @@ const actionStyles = {
     REASSIGNED: "border-cyan-400/20 bg-cyan-400/10 text-cyan-200",
     STATUS_CHANGED: "border-amber-400/20 bg-amber-400/10 text-amber-200",
     DETAILS_UPDATED: "border-white/10 bg-white/[.04] text-slate-300",
+    AI_ANALYZED: "border-violet-400/20 bg-violet-400/10 text-violet-200",
 };
 
 function formatDate(value) {

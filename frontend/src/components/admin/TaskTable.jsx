@@ -7,6 +7,7 @@ import {
   CalendarDays,
   Clock3,
   History,
+  Sparkles,
 } from "lucide-react";
 
 const statusStyles = {
@@ -68,6 +69,7 @@ export default function TaskTable({
   onAssign,
   onUpdateProgress,
   onViewActivity,
+  onGetRecommendations,
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-white/[.08] bg-[#0d1020]/90">
@@ -273,6 +275,17 @@ export default function TaskTable({
                         className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:border-violet-400/30 hover:bg-violet-400/10 hover:text-violet-200"
                       >
                         <Pencil size={14} />
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onGetRecommendations?.(task)}
+                        disabled={closed}
+                        title={closed ? "Closed tasks cannot receive recommendations" : "Get AI employee recommendations"}
+                        aria-label={`Get AI employee recommendations for ${task.title}`}
+                        className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 text-slate-400 transition hover:border-violet-400/30 hover:bg-violet-400/10 hover:text-violet-200 disabled:cursor-not-allowed disabled:opacity-30"
+                      >
+                        <Sparkles size={15} />
                       </button>
 
                       <button

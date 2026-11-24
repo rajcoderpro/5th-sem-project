@@ -20,6 +20,7 @@ import {
     SlidersHorizontal,
     ChevronLeft,
     ChevronRight,
+    Sparkles,
 } from "lucide-react";
 
 import { apiGet, apiRequest } from "../../services/api.js";
@@ -29,6 +30,7 @@ import TaskAssignmentModal from "../../components/admin/TaskAssignmentModal.jsx"
 import TaskStatusModal from "../../components/admin/TaskStatusModal.jsx";
 import TaskTable from "../../components/admin/TaskTable.jsx";
 import TaskActivityModal from "../../components/shared/TaskActivityModal.jsx";
+import AIRecommendationsModal from "../../components/admin/AIRecommendationsModal.jsx";
 
 const LIMIT = 10;
 
@@ -111,6 +113,13 @@ export default function TasksPage() {
     const [assignmentTask, setAssignmentTask] = useState( null );
     const [statusTask, setStatusTask] = useState( null );
     const [activityTask, setActivityTask] = useState(null);
+
+    // AI task allocation
+    const [aiRecommendationTask, setAIRecommendationTask] = useState(null);
+    const [aiRecommendationResult, setAIRecommendationResult] = useState(null);
+    const [aiRecommendationLoading, setAIRecommendationLoading] = useState(false);
+    const [aiRecommendationError, setAIRecommendationError] = useState("");
+    const [aiAssigningEmployeeId, setAIAssigningEmployeeId] = useState("");
 
     // Load tasks using backend filters and pagination.
     const loadTasks = useCallback( async () => {
@@ -406,6 +415,55 @@ export default function TasksPage() {
         await loadStats();
     };
 
+    // Request Gemini analysis and employee allocation recommendations.
+    const handleGetAIRecommendations = async (task) => {
+        setAIRecommendationTask(task);
+        setAIRecommendationResult(null);
+        setAIRecommendationError("");
+        setAIRecommendationLoading(true);
+
+        try {
+            const response = await apiRequest(
+                `/api/ai/tasks/${task._id}/recommendations`,
+                { method: "POST" }
+            );
+            setAIRecommendationResult(response);
+        } catch (err) {
+            setAIRecommendationError(err.message || "Unable to generate AI recommendations.");
+        } finally {
+            setAIRecommendationLoading(false);
+        }
+    };
+
+    // Re-check and approve a candidate using the existing task assignment API.
+    const handleAIRecommendationAssign = async (employeeId) => {
+        if (!aiRecommendationTask || !employeeId) return;
+
+        setAIAssigningEmployeeId(employeeId);
+
+        try {
+            const response = await apiRequest(
+                `/api/tasks/${aiRecommendationTask._id}/assign`,
+                {
+                    method: "PATCH",
+                    body: JSON.stringify({
+                        employeeId,
+                        source: "AI_RECOMMENDATION",
+                    }),
+                }
+            );
+
+            setAIRecommendationTask(null);
+            setAIRecommendationResult(null);
+            setNotice(response.message || "AI-recommended employee assigned successfully.");
+            await Promise.all([loadTasks(), loadStats()]);
+        } catch (err) {
+            setAIRecommendationError(err.message || "Unable to assign the recommended employee.");
+        } finally {
+            setAIAssigningEmployeeId("");
+        }
+    };
+
     // Assign or reassign task.
     const handleAssignment = async ( employeeId ) => {
         if ( !assignmentTask ) return;
@@ -689,6 +747,7 @@ export default function TasksPage() {
                     onAssign={setAssignmentTask}
                     onUpdateProgress={setStatusTask}
                     onViewActivity={setActivityTask}
+                    onGetRecommendations={handleGetAIRecommendations}
                 />
             </div>
 
@@ -771,6 +830,21 @@ export default function TasksPage() {
             <TaskActivityModal
                 task={activityTask}
                 onClose={() => setActivityTask(null)}
+            />
+
+            <AIRecommendationsModal
+                task={aiRecommendationTask}
+                result={aiRecommendationResult}
+                loading={aiRecommendationLoading}
+                error={aiRecommendationError}
+                assigningEmployeeId={aiAssigningEmployeeId}
+                onClose={() => {
+                    if (aiAssigningEmployeeId) return;
+                    setAIRecommendationTask(null);
+                    setAIRecommendationResult(null);
+                    setAIRecommendationError("");
+                }}
+                onAssign={handleAIRecommendationAssign}
             />
         </div>
     );

@@ -14,7 +14,7 @@ const taskActivitySchema = new mongoose.Schema(
         },
         action: {
             type: String,
-            enum: ["CREATED", "ASSIGNED", "REASSIGNED", "STATUS_CHANGED", "DETAILS_UPDATED"],
+            enum: ["CREATED", "ASSIGNED", "REASSIGNED", "STATUS_CHANGED", "DETAILS_UPDATED", "AI_ANALYZED"],
             required: true,
         },
         message: {

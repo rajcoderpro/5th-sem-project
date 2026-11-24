@@ -4,6 +4,12 @@ const mongoose = require("mongoose");
 const taskModel = require("../models/task.model");
 const employeeModel = require("../models/employee.model");
 const departmentModel = require("../models/department.model");
+const leaveModel = require("../models/leave.model");
+const {
+    calculateSkillCompatibility,
+    calculateRemainingTaskHours,
+    countWorkingDaysInclusive,
+} = require("../utils/allocationScoring");
 const taskActivityModel = require("../models/taskActivity.model");
 const { recordTaskActivity } = require("../services/taskActivity.service");
 const { createNotification, notifyAdmins } = require("../services/notification.service");
@@ -673,7 +679,7 @@ const updateTask = asyncHandler(async (req, res) => {
 // PATCH /api/tasks/:id/assign — Admin assigns a task
 const assignTask = asyncHandler(async (req, res) => {
     const { id } = req.params;
-    const { employeeId } = req.body || {};
+    const { employeeId, source } = req.body || {};
 
     if (!isValidId(id) || !isValidId(employeeId)) {
         return res.status(400).json({
@@ -706,6 +712,74 @@ const assignTask = asyncHandler(async (req, res) => {
         });
     }
 
+    // Re-check critical constraints when an admin approves an AI suggestion.
+    // Manual assignments remain available as an administrator override.
+    if (source === "AI_RECOMMENDATION") {
+        if (employee.departmentId.toString() !== task.departmentId.toString()) {
+            return res.status(409).json({
+                message: "This employee is no longer eligible because they belong to a different department. Generate recommendations again."
+            });
+        }
+
+        const overlappingApprovedLeave = await leaveModel.findOne({
+            employeeId: employee._id,
+            status: "APPROVED",
+            startDate: { $lte: task.dueDate },
+            endDate: { $gte: task.startDate },
+        }).select("_id");
+
+        if (overlappingApprovedLeave) {
+            return res.status(409).json({
+                message: "This employee has approved leave overlapping the task dates. Generate recommendations again."
+            });
+        }
+
+        const overlappingTasks = await taskModel.find({
+            assignedTo: employee._id,
+            _id: { $ne: task._id },
+            status: { $in: ["TODO", "IN_PROGRESS", "BLOCKED", "IN_REVIEW"] },
+            startDate: { $lte: task.dueDate },
+            dueDate: { $gte: task.startDate },
+        }).select("estimatedHours progressPercentage").lean();
+
+        const maxConcurrentTasks = Math.max(
+            1,
+            Number(employee.capacity?.maxConcurrentTasks) || 5
+        );
+
+        if (overlappingTasks.length >= maxConcurrentTasks) {
+            return res.status(409).json({
+                message: "This employee has reached their maximum number of concurrent tasks. Generate recommendations again."
+            });
+        }
+
+        const weeklyHours = Math.max(0, Number(employee.capacity?.weeklyHours) || 40);
+        const workingDays = countWorkingDaysInclusive(task.startDate, task.dueDate);
+        const capacityHours = (weeklyHours / 5) * workingDays;
+        const alreadyAssignedHours = overlappingTasks.reduce(
+            (sum, existingTask) => sum + calculateRemainingTaskHours(existingTask),
+            0
+        );
+        const availableHours = Math.max(0, capacityHours - alreadyAssignedHours);
+
+        if (availableHours < Number(task.estimatedHours || 0)) {
+            return res.status(409).json({
+                message: "This employee no longer has enough capacity for this task. Generate recommendations again."
+            });
+        }
+
+        const skillResult = calculateSkillCompatibility(
+            employee.skills || [],
+            task.skillsRequired || []
+        );
+
+        if ((task.skillsRequired || []).length && skillResult.score === 0) {
+            return res.status(409).json({
+                message: "This employee does not match the task's required skills. Generate recommendations again."
+            });
+        }
+    }
+
     const previousEmployeeId = task.assignedTo?.toString() || null;
     task.assignedTo = employee._id;
     task.updatedBy = req.user.id;
@@ -720,7 +794,7 @@ const assignTask = asyncHandler(async (req, res) => {
             taskId: task._id,
             actor: req.user.id,
             action: isReassignment ? "REASSIGNED" : "ASSIGNED",
-            message: `${isReassignment ? "Task reassigned" : "Task assigned"} to employee ${employee.employeeCode}`,
+            message: `${isReassignment ? "Task reassigned" : "Task assigned"} to employee ${employee.employeeCode}${source === "AI_RECOMMENDATION" ? " via AI recommendation" : ""}`,
             fromValue: previousEmployeeId || "",
             toValue: employee._id.toString(),
         });
