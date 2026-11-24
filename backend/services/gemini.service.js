@@ -147,23 +147,25 @@ async function analyzeTaskWithGemini( task, skillCatalog = [] ) {
                 },
                 store: false,
             } ),
-            signal: AbortSignal.timeout( 85000 ),
+            signal: AbortSignal.timeout( 75000 ),
         } );
-    } catch ( error ) {
-        if ( error.name === "TimeoutError" || error.name === "AbortError" ) {
-            console.error( "Gemini request timed out:", {
-                errorName: error.name,
-                errorMessage: error.message,
-                timeout: "45 seconds"
-            } );
+    } catch (error) {
+    console.error("Gemini network error:", error);
 
-            throw new GeminiServiceError(
-                "Gemini took too long to respond. Please try again.",
-                504,
-                "AI_TIMEOUT"
-            );
-        }
+    if (error.name === "TimeoutError" || error.name === "AbortError") {
+        throw new GeminiServiceError(
+            "Gemini took too long to respond. Please try again.",
+            504,
+            "AI_TIMEOUT"
+        );
     }
+
+    throw new GeminiServiceError(
+        "Unable to connect to Gemini. Please try again.",
+        502,
+        "AI_NETWORK_ERROR"
+    );
+}
 
     const responseBody = await response.json().catch( () => ( {} ) );
 
@@ -226,5 +228,4 @@ module.exports = {
     analyzeTaskWithGemini,
     getGeminiConfiguration,
     GeminiServiceError,
-};
-signal: AbortSignal.timeout
+}; 
